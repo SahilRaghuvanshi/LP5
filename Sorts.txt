@@ -1,0 +1,103 @@
+#include<iostream>
+using namespace std;
+int n;
+int A[20];
+int B[20];
+void BubbleSort()
+{
+	for(int i=0;i<n-1;i++)
+	{
+		#pragma omp parallel for shared(A,i)
+		for(int j=0;j<n-1-i;j++)
+		{
+			if(A[j]>A[j+1])
+			{
+				int temp = A[j];
+				A[j]=A[j+1];
+				A[j+1]=temp;
+			}
+		}
+	}
+}
+void merge(int B[], int l, int mid, int h)
+{
+	int i,j,k;
+	i=l;
+	j=mid+1;
+	k=l;
+	int temp[h+1];
+	while(i<=mid && j<=h)
+	{
+		if(B[i]<B[j])
+		{
+			temp[k++]=B[i++];
+		}
+		else
+		{
+			temp[k++]=B[j++];
+		}
+	}
+	for(;i<=mid;i++)
+	{
+		temp[k++]=B[i];
+	}
+	for(;j<=h;j++)
+	{
+		temp[k++]=B[j];
+	}
+	for(int i=l;i<=h;i++)
+	{
+	
+		B[i]=temp[i];
+	}
+}
+void MergeSort(int B[],int l, int h)
+{
+	if(l<h)
+	{
+		int mid=(l+h)/2;
+		#pragma omp parallel sections
+		{
+			#pragma omp section
+			{
+				MergeSort(B,l,mid);
+			}		
+			#pragma omp section
+			{
+				MergeSort(B,mid+1,h);
+			}
+		}
+		merge(B,l,mid,h);
+	}
+}
+int main()
+{
+	cout<<"Enter the length of array for Bubble Sort: ";
+	cin>>n;
+	cout<<"Enter the elements: ";
+	for(int i=0;i<n;i++)
+	{
+		cin>>A[i];
+	}
+	BubbleSort();
+	cout<<"After Bubble Sort: ";
+	for(int i=0;i<n;i++)
+	{
+		cout<<A[i]<<" ";
+	}
+	cout<<endl;
+	cout<<"Enter the length of array for Merge Sort: ";
+	cin>>n;
+	cout<<"Enter the elements: ";
+	for(int i=0;i<n;i++)
+	{
+		cin>>B[i];
+	}
+	MergeSort(B,0,n-1);
+	cout<<"After Merge Sort: ";
+	for(int i=0;i<n;i++)
+	{
+		cout<<B[i]<<" ";
+	}cout<<endl;
+	return 0;
+}

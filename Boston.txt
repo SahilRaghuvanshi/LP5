@@ -1,0 +1,53 @@
+import warnings
+warnings.filterwarnings('ignore')
+import tensorflow as tf
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+%matplotlib inline
+from sklearn.model_selection import train_test_split
+(X_train,y_train),(X_test,y_test) = tf.keras.datasets.boston_housing.load_data(path='boston', test_split=0.2, seed=42)
+X_train = pd.DataFrame(X_train)
+y_train = pd.DataFrame(y_train)
+X_train.head(2)
+y_train.head(2)
+X_train.info()
+y_train.info()
+X_train.describe()
+///////////////////////
+from sklearn.compose import make_column_transformer
+from sklearn.preprocessing import MinMaxScaler
+ct= make_column_transformer((MinMaxScaler(),[0,1,2,4,5,6,7,8,9,10,11,12]))
+X_train = ct.fit_transform(X_train).astype('float32')
+X_test=ct.fit_transform(X_test).astype('float32')
+y_train = y_train.astype('float32')
+y_test= y_test.astype('float32')
+///////////////////////
+X_train, X_val, y_train, y_val = train_test_split(X_train,y_train,test_size=0.1,random_state=42)
+///////////////////////
+tf.random.set_seed(42)
+///////////////////////
+model = tf.keras.Sequential(
+                             [ 
+                                 tf.keras.layers.Dense(units=10, activation='relu', input_shape=(X_train.shape[1],), name='Dense_1'),
+                                 tf.keras.layers.Dense(units=100, activation='relu',name='Dense_2'),
+                                 tf.keras.layers.Dense(units=1, name='Prediction')
+                             ]
+                           )
+///////////////////////
+model.compile(
+                loss=tf.keras.losses.mean_squared_error,
+                optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.01),
+                metrics=['mse']
+             )
+///////////////////////
+history= model.fit(X_train,y_train,batch_size=32,epochs=50,validation_data=(X_val,y_val))
+///////////////////////
+loss,mse = model.evaluate(X_test,y_test,batch_size=32)
+print("loss:",loss)
+print("mse:",mse)
+///////////////////////
+pd.DataFrame(history.history).plot(figsize=(6, 4), xlabel="Epochs", ylabel="Loss", title="Loss Curves")
+///////////////////////
+y_pred=model.predict(X_test)
+y_pred[0]

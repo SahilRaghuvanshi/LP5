@@ -1,0 +1,76 @@
+import warnings 
+warnings.filterwarnings('ignore')
+import tensorflow as tf
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+%matplotlib inline
+(X_train,y_train),(X_test,y_test) = tf.keras.datasets.imdb.load_data(num_words=1000)
+word_index=tf.keras.datasets.imdb.get_word_index()
+word_index
+reverse_word_index = dict([(value,key) for (key,value) in word_index.items()])
+reverse_word_index
+decode_review = ' '.join([reverse_word_index.get(i-3,'?') for i in X_train[0]])
+decode_review
+//////////////////////////
+def vectorize_sequences(sequences, dimension=1000):
+    results=np.zeros((len(sequences),dimension))
+    for i,sequence in enumerate(sequences):
+        results[i,sequence]=1
+    return results
+//////////////////////////
+X_train=vectorize_sequences(X_train)
+//////////////////////////
+X_test=vectorize_sequences(X_test)
+X_train[0]
+//////////////////////////
+y_train = y_train.astype("float32")
+y_test = y_test.astype("float32")
+//////////////////////////
+from sklearn.model_selection import train_test_split
+X_train, X_val,y_train,y_val=train_test_split(X_train,y_train,test_size=0.1,random_state=42)
+//////////////////////////
+model = tf.keras.Sequential(
+                                [
+                                    tf.keras.layers.Dense(units=16, activation='relu',input_shape=(X_train.shape[1],),name='Dense_1'),
+                                    tf.keras.layers.Dense(units=100, activation='relu',name="Dense_2"),
+                                    tf.keras.layers.Dense(units=1,activation='sigmoid')
+                                        
+                                ]
+                           )
+//////////////////////////
+model.compile(
+                loss=tf.losses.binary_crossentropy,
+                optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.001),
+                metrics=['accuracy']
+             )
+//////////////////////////
+history= model.fit(X_train,y_train,batch_size=512,epochs=20,validation_data=(X_val,y_val))
+//////////////////////////
+history.history
+//////////////////////////
+loss_values = history.history['loss']
+val_loss_values = history.history['val_loss']
+epochs=range(1,len(loss_values)+1)
+plt.plot(epochs,loss_values,'g', label="Training Loss")
+plt.plot(epochs,val_loss_values,'b', label="Validation Loss")
+plt.xlabel('Epochs')
+plt.ylabel('Loss_value')
+plt.title('Training and Testing loss')
+plt.show()
+//////////////////////////
+acc_values = history.history['accuracy']
+val_acc_values = history.history['val_accuracy']
+epochs=range(1,len(acc_values)+1)
+plt.plot(epochs,acc_values,'g', label="Training Accuracy")
+plt.plot(epochs,val_acc_values,'b', label="Validation Accuracy")
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy_value')
+plt.title('Training and Testing Accuracy')
+plt.show()
+//////////////////////////
+y_pred = model.predict(X_test)
+y_pred[0]
+//////////////////////////
+
+
